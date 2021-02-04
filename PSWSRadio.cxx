@@ -6,6 +6,7 @@
 //
 //------------------------------------------------------------------
 #include <fstream>
+#include <unistd.h>
 #include <stdio.h>
 #include <cstdio>
 #include <string>
@@ -18,8 +19,11 @@ using namespace std;
 // global variables 
         string analysisFileName;  //to hold name of current analysis file
         bool write_to_csv; //says to begin writing csv
+        char FileDate[20];
         char FileData[20]; //
-
+        struct tm File_Start_Date;
+        struct tm File_Start_Data;
+        string OpenAnalalysisFile;
 
 
 void start_csv()
@@ -463,10 +467,10 @@ void createfilename()
 
 
 // check for ~/PSWS/ directory and if not there create entire file structure
-        if (fl_access(PSWSBaseDir.c_str(),F_OK) == -1)
+        if (access(PSWSBaseDir.c_str(),F_OK) == -1)
         //base directory does not exist, so create it and all subdirectoriew
         {
-	        put_status("~/PSWS/Srawdata/ does NOT EXIST!");
+	        //put_status("~/PSWS/Srawdata/ does NOT EXIST!");
 		printf("Cannot find %s\n", PSWSBaseDir.c_str());
 		write_to_csv = false;  //say NO  writes to file
         }
@@ -478,10 +482,10 @@ void createfilename()
 
 // Full name with path
 // Added new file naming and storage by N8OBJ 4-24-20
-	analysisFilename.assign(AnalysisDir).append(OpenAnalalysisFile);
+	analysisFileName.assign(AnalysisDir).append(OpenAnalalysisFile);
 
 // diag print out full path name
-        printf("\nFull pathname is: %s\n", analysisFilename.c_str());
+        printf("\nFull pathname is: %s\n", analysisFileName.c_str());
 
 
 }
