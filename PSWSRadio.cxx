@@ -25,6 +25,62 @@ using namespace std;
         struct tm File_Start_Data;
         string OpenAnalalysisFile;
 
+void createfilename()
+{
+// Function to find the working directory
+// also creates the filename that should be open for today's date [w and w/o full path]
+
+        // String defs
+        string DateTimeZulu;
+
+	// path names to working directories
+        string HomePath;
+        string PSWSBaseDir;
+        string AnalysisDir;
+
+       // File locations for metadata info
+        HomePath = getenv("HOME");
+        PSWSBaseDir = HomePath + "/PSWS/";
+        AnalysisDir = PSWSBaseDir + "Srawdata/";
+
+// Create embedded ISODateTime YYYY-MM-DDTHHMMSS for file creation naming
+	time_t now = time(NULL);
+	gmtime_r(&now, &File_Start_Date);
+
+// Create embedded ISODateTime data image as YYYY-MM-DDTHH:MM:SS for file header info
+	gmtime_r(&now, &File_Start_Data);
+
+// create the embedded filename date&time image as YYMMDD (original date format)
+	strftime((char*)FileDate,sizeof(FileDate),"%y%m%d", &File_Start_Date);
+
+// create the embedded date data image as YYYY-MM-DDTHH:MM:SSZ (Full ISO Date format)
+//	strftime((char*)FileData,sizeof(FileData),"%Y-%m-%dT%H:%M:%S", &File_Start_Data);
+	strftime((char*)FileData,sizeof(FileData),"%FT%T", &File_Start_Data);
+
+
+// check for ~/PSWS/ directory and if not there create entire file structure
+        if (access(PSWSBaseDir.c_str(),F_OK) == -1)
+        //base directory does not exist, so create it and all subdirectoriew
+        {
+	        //put_status("~/PSWS/Srawdata/ does NOT EXIST!");
+		printf("Cannot find %s\n", PSWSBaseDir.c_str());
+		write_to_csv = false;  //say NO  writes to file
+        }
+        else
+	        printf("\n\nPSWS Main Directory %s DOES EXIST and will use it!\n", PSWSBaseDir.c_str() ); // diag line
+
+// now create the analysis file name structure for today's data
+	OpenAnalalysisFile.assign("analysis").append(FileDate).append(".csv");
+
+// Full name with path
+// Added new file naming and storage by N8OBJ 4-24-20
+	analysisFileName.assign(AnalysisDir).append(OpenAnalalysisFile);
+
+// diag print out full path name
+        printf("\nFull pathname is: %s\n", analysisFileName.c_str());
+
+
+}
 
 void start_csv()
 {
@@ -229,7 +285,7 @@ void start_csv()
 
 
         // see if frequency is available here - diag print
-        CalcFreq = (wf->rfcarrier() + (wf->USB() ? 1.0 : -1.0) * (frequency + fout));
+       // CalcFreq = (wf->rfcarrier() + (wf->USB() ? 1.0 : -1.0) * (frequency + fout));
 //        printf("\nCalc Frequency at file creation is = %13.3f\n",CalcFreq);
 
 	// Create integer rep for analysis (add offset to get correct rounding)
@@ -351,7 +407,7 @@ void start_csv()
 	//Open the data file for creation (write) operation
 	//first check to see if already created
 
-	if (fopen(analysisFileName.c_str(), "a+") != nullptr)
+	if (fopen(analysisFileName.c_str(), "r+") != nullptr)
 	{
 	// file exists! - use it and keep adding to it
 	// indicate in status line that file write to existing file
@@ -373,11 +429,8 @@ void start_csv()
         // Write out the initial header info line to the new .csv file
 
         // use for initial header containing full ISO date & time  YYYY-MM-DDTHH:MM:SSZ
-//        fprintf(out, "#,%s,%s,%s,%s,%s,%s,%s\n",FileDate,NodeNum.c_str(),GridSqr.c_str(),LatLonElv.c_str(),CityState.c_str(),Radio1ID.c_str(),Beacon1.c_str());
-        fprintf(out, "#,%sZ,%s,%s,%s,%s,%s,%s\n",FileData,NodeNum.c_str(),GridSqr.c_str(),LatLonElv.c_str(),CityState.c_str(),Radio1ID.c_str(),Beacon1.c_str());
-//        fprintf(out, "#,%s,%s,%s,%s,%s,%s,%s\n",DateTimeZulu,NodeNum.c_str(),GridSqr.c_str(),LatLonElv.c_str(),CityState.c_str(),Radio1ID.c_str(),Beacon1.c_str());
-
-	//Diag printout
+       fprintf(out, "#,%sZ,%s,%s,%s,%s,%s,%s\n",FileData,NodeNum.c_str(),GridSqr.c_str(),LatLonElv.c_str(),CityState.c_str(),Radio1ID.c_str(),Beacon1.c_str());
+        //Diag printout
 //        printf("Initial Hdr>#,%sZ,%s,%s,%s,%s,%s,%s\n",FileData,NodeNum.c_str(),GridSqr.c_str(),LatLonElv.c_str(),CityState.c_str(),Radio1ID.c_str(),Beacon1.c_str());
 
 	// Print out saved Metadat contained in ~/PSWS/Sinfo/ directory (alreadd read in)
@@ -425,7 +478,7 @@ void start_csv()
 
         fclose(out);
 
-        printf("Creating analysis file %s \n\n", analysisFilename.c_str());  //diag output
+        //printf("Creating analysis file %s \n\n", analysisFilename.c_str());  //diag output
 
         write_to_csv = true;  //say to do writes to file
         }
@@ -433,62 +486,6 @@ void start_csv()
 	printf("\nExiting start_csv routine\n\n"); //diag pring
 }
 
-void createfilename()
-{
-// Function to find the working directory
-// also creates the filename that should be open for today's date [w and w/o full path]
-
-        // String defs
-        string DateTimeZulu;
-
-	// path names to working directories
-        string HomePath;
-        string PSWSBaseDir;
-        string AnalysisDir;
-
-       // File locations for metadata info
-        HomePath = getenv("HOME");
-        PSWSBaseDir = HomePath + "/PSWS/";
-        AnalysisDir = PSWSBaseDir + "Srawdata/";
-
-// Create embedded ISODateTime YYYY-MM-DDTHHMMSS for file creation naming
-	time_t now = time(NULL);
-	gmtime_r(&now, &File_Start_Date);
-
-// Create embedded ISODateTime data image as YYYY-MM-DDTHH:MM:SS for file header info
-	gmtime_r(&now, &File_Start_Data);
-
-// create the embedded filename date&time image as YYMMDD (original date format)
-	strftime((char*)FileDate,sizeof(FileDate),"%y%m%d", &File_Start_Date);
-
-// create the embedded date data image as YYYY-MM-DDTHH:MM:SSZ (Full ISO Date format)
-//	strftime((char*)FileData,sizeof(FileData),"%Y-%m-%dT%H:%M:%S", &File_Start_Data);
-	strftime((char*)FileData,sizeof(FileData),"%FT%T", &File_Start_Data);
-
-
-// check for ~/PSWS/ directory and if not there create entire file structure
-        if (access(PSWSBaseDir.c_str(),F_OK) == -1)
-        //base directory does not exist, so create it and all subdirectoriew
-        {
-	        //put_status("~/PSWS/Srawdata/ does NOT EXIST!");
-		printf("Cannot find %s\n", PSWSBaseDir.c_str());
-		write_to_csv = false;  //say NO  writes to file
-        }
-        else
-	        printf("\n\nPSWS Main Directory %s DOES EXIST and will use it!\n", PSWSBaseDir.c_str() ); // diag line
-
-// now create the analysis file name structure for today's data
-	OpenAnalalysisFile.assign("analysis").append(FileDate).append(".csv");
-
-// Full name with path
-// Added new file naming and storage by N8OBJ 4-24-20
-	analysisFileName.assign(AnalysisDir).append(OpenAnalalysisFile);
-
-// diag print out full path name
-        printf("\nFull pathname is: %s\n", analysisFileName.c_str());
-
-
-}
 
 int main()
 {
